@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Teachers{% endblock %}
+{% block nav_teachers %}active{% endblock %}
+
+{% block content %}
+<div class="page-title">
+  <div>
+    <h1>Teachers</h1>
+    <p class="sub">{{ people|length }} teacher{{ '' if people|length == 1 else 's' }} &middot; tap a name to see today's classes</p>
+  </div>
+  <a class="btn" href="{{ url_for('add_teacher') }}">+ Add Teacher</a>
+</div>
+
+{% if people %}
+<div class="teacher-grid">
+  {% for p in people %}
+  <div class="teacher-card tone-orange {{ 'selected' if chosen and chosen.id == p.id }}">
+    <div class="teacher-top">
+      <svg><use href="#icon-teacher"/></svg>
+      <a class="teacher-name" href="{{ url_for('teachers', id=p.id) }}#today-classes">
+        <strong>{{ p.name }}</strong>
+        <span>{{ p.count }} class{{ '' if p.count == 1 else 'es' }} today</span>
+      </a>
+    </div>
+
+    <div class="teach-list">
+      {% for g in p.groups %}
+      <div class="teach-line">
+        <b>{{ g.subject }}</b>
+        <span>{{ g.department }} &middot; {{ g.years_text }}</span>
+      </div>
+      {% else %}
+      <div class="teach-line"><span>No subjects added yet. Click Edit.</span></div>
+      {% endfor %}
+    </div>
+
+    <div class="actions">
+      <a class="btn btn-gray btn-small" href="{{ url_for('edit_teacher', id=p.id) }}">Edit</a>
+      <form method="POST" action="{{ url_for('delete_teacher', id=p.id) }}"
+            onsubmit="return confirm('Delete {{ p.name }}?');">
+        <button type="submit" class="btn btn-red">Delete</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if chosen %}
+<div class="card panel" id="today-classes">
+  <div class="panel-head">
+    <h2>{{ chosen.name }} &middot; Today's Classes</h2>
+    <span class="hint">{{ today }}</span>
+  </div>
+  {% for b in chosen.classes %}
+  <a class="slot-item" href="{{ url_for('schedule') }}">
+    <div class="slot-main">
+      <strong>{{ b.subject or 'Class' }} &middot; {{ b.class_label }}</strong>
+      <span>{{ b.room_text }} &middot; {{ b|time_label }}</span>
+    </div>
+    <span class="pill {{ b.pill }}">{{ b.label }}</span>
+  </a>
+  {% else %}
+  <div class="empty-small">{{ chosen.name }} has no classes today.</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="card empty">No teachers yet. Click "+ Add Teacher" to add the first one.</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+
+<div class="dash-head">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Welcome back, {{ first_name }}! Here's what is happening in the college today.</p>
+  </div>
+  <div class="date-box">
+    <svg><use href="#icon-calendar"/></svg>
+    <div>
+      <strong>{{ today }}</strong>
+      <span>Have a great day!</span>
+    </div>
+  </div>
+</div>
+
+<div class="cards">
+  <a class="stat-card tone-blue" href="{{ url_for('rooms') }}">
+    <svg><use href="#icon-school"/></svg>
+    <div class="stat-number">{{ total_rooms }}</div>
+    <div class="stat-name">Total Rooms</div>
+  </a>
+  <a class="stat-card tone-green" href="{{ url_for('rooms') }}">
+    <svg><use href="#icon-class-empty"/></svg>
+    <div class="stat-number">{{ free }}</div>
+    <div class="stat-name">Free Rooms</div>
+  </a>
+  <a class="stat-card tone-red" href="{{ url_for('rooms') }}">
+    <svg><use href="#icon-class-use"/></svg>
+    <div class="stat-number">{{ in_use }}</div>
+    <div class="stat-name">Rooms in Use</div>
+  </a>
+  <a class="stat-card tone-purple" href="{{ url_for('schedule') }}">
+    <svg><use href="#icon-calendar-grad"/></svg>
+    <div class="stat-number">{{ classes_today }}</div>
+    <div class="stat-name">Classes Today</div>
+  </a>
+  <a class="stat-card tone-orange" href="{{ url_for('teachers') }}">
+    <svg><use href="#icon-teacher"/></svg>
+    <div class="stat-number">{{ total_teachers }}</div>
+    <div class="stat-name">Teachers</div>
+  </a>
+</div>
+
+<div class="dash-grid">
+
+  <div class="card panel">
+    <div class="panel-head">
+      <h2><a href="{{ url_for('schedule') }}">Today's Classes</a></h2>
+      <a href="{{ url_for('schedule') }}">View All</a>
+    </div>
+    <div class="today-list">
+    {% for b in todays_classes %}
+    <a class="list-item" href="{{ url_for('schedule') }}">
+      <div class="list-icon"><svg><use href="#icon-calendar"/></svg></div>
+      <div class="list-main">
+        <strong>{{ b.teacher_name }}{% if b.subject %} &middot; {{ b.subject }}{% endif %}</strong>
+        <span>{{ b.class_label }} &middot; {{ b.room_text }} &middot; {{ b|time_label }}</span>
+      </div>
+      <div class="list-side">
+        <span class="pill {{ b.pill }}">{{ b.label }}</span>
+      </div>
+    </a>
+    {% else %}
+    <div class="empty-small">No classes today.</div>
+    {% endfor %}
+    </div>
+  </div>
+
+  <div class="card panel">
+    <div class="panel-head"><h2>Room Status</h2></div>
+    <div class="donut-wrap">
+      <div class="donut">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <circle cx="100" cy="100" r="82" fill="none" stroke="#dc4b4b" stroke-width="30"/>
+          <circle cx="100" cy="100" r="82" fill="none" stroke="#22a35a" stroke-width="30"
+                  pathLength="100" stroke-dasharray="{{ free_percent }} 100"/>
+        </svg>
+        <div class="donut-center">
+          <strong>{{ total_rooms }}</strong>
+          <span>Total Rooms</span>
+        </div>
+      </div>
+      <div class="legend">
+        <div><i class="dot green"></i> Free Rooms <b>{{ free }}</b></div>
+        <div><i class="dot red"></i> Rooms in Use <b>{{ in_use }}</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card panel">
+    <div class="panel-head"><h2>Quick Actions</h2></div>
+    <div class="quick-grid">
+      <a class="quick-item tone-green" href="{{ url_for('add_booking') }}">
+        <svg class="q-icon"><use href="#icon-calendar"/></svg> Allot a Room
+        <svg class="chev"><use href="#icon-chevron"/></svg>
+      </a>
+      <a class="quick-item tone-orange" href="{{ url_for('add_teacher') }}">
+        <svg class="q-icon"><use href="#icon-teacher"/></svg> Add Teacher
+        <svg class="chev"><use href="#icon-chevron"/></svg>
+      </a>
+      <a class="quick-item tone-purple" href="{{ url_for('add_department') }}">
+        <svg class="q-icon"><use href="#icon-book"/></svg> Add Department
+        <svg class="chev"><use href="#icon-chevron"/></svg>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block refresh %}
+<script>
+  setTimeout(function () { window.location.reload(); }, 10000);
+</script>
+{% endblock %}

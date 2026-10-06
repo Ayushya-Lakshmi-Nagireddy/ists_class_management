@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Classes{% endblock %} - ISTS</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo-icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="icon-home" viewBox="0 0 24 24"><path d="M12 2.800 1.800 11.800h3V21h5.600v-6h3.200v6h5.600v-9.200h3z"/></symbol>
+    <symbol id="icon-users" viewBox="0 0 24 24">
+      <circle cx="12" cy="7.800" r="3.400"/>
+      <path d="M5.500 20.500c0-3.700 2.900-6.300 6.500-6.300s6.500 2.600 6.500 6.300z"/>
+      <circle cx="4.700" cy="10.200" r="2.400"/>
+      <path d="M0.500 19c0-2.600 1.900-4.600 4.300-4.600.9 0 1.700.2 2.300.6-1.300 1.100-2 2.600-2.100 4z"/>
+      <circle cx="19.300" cy="10.200" r="2.400"/>
+      <path d="M23.500 19c0-2.600-1.900-4.600-4.300-4.600-.9 0-1.700.2-2.300.6 1.300 1.100 2 2.600 2.100 4z"/>
+    </symbol>
+    <symbol id="icon-person" viewBox="0 0 24 24">
+      <circle cx="12" cy="7.200" r="4.200"/>
+      <path d="M4 21c0-4.500 3.600-7.500 8-7.500s8 3 8 7.500z"/>
+    </symbol>
+    <!-- school building (Total Classes) -->
+    <symbol id="icon-school" viewBox="0 0 24 24">
+      <rect x="11.400" y="0.600" width="1.200" height="4.400"/>
+      <path d="M12.600 0.900h4l-1.200 1.400 1.200 1.400h-4z"/>
+      <path fill-rule="evenodd" d="M12 4.800 6.500 8.600v12.600h11V8.600zM10.200 21.200v-5.600h3.600v5.600zM12 9.100a1.500 1.500 0 1 0 0 3 1.500 1.500 0 0 0 0-3z"/>
+      <path fill-rule="evenodd" d="M1 11.200h5.500v10H1zM2.300 13.200v2h2.900v-2zM2.300 16.800v2h2.900v-2z"/>
+      <path fill-rule="evenodd" d="M17.500 11.200H23v10h-5.500zM18.800 13.200v2h2.900v-2zM18.800 16.800v2h2.900v-2z"/>
+    </symbol>
+    <!-- empty class: board + desks + tick (Empty Classes) -->
+    <symbol id="icon-class-empty" viewBox="0 0 24 24">
+      <path fill-rule="evenodd" d="M4 1.500h16A1.500 1.500 0 0 1 21.500 3v9.500A1.500 1.500 0 0 1 20 14H4a1.500 1.500 0 0 1-1.500-1.500V3A1.500 1.500 0 0 1 4 1.500zm.4 1.900v8.700h15.200V3.400z"/>
+      <rect x="2" y="16.400" width="6.400" height="1.800" rx="0.500"/>
+      <rect x="2.800" y="18.200" width="1.100" height="3.600"/>
+      <rect x="6.500" y="18.200" width="1.100" height="3.600"/>
+      <rect x="9.600" y="16.400" width="6.400" height="1.800" rx="0.500"/>
+      <rect x="10.400" y="18.200" width="1.100" height="3.600"/>
+      <rect x="14.100" y="18.200" width="1.100" height="3.600"/>
+      <circle cx="19" cy="18.600" r="4.600" style="stroke: var(--tone-card, var(--card-color)); stroke-width: 1.600"/>
+      <path d="M16.600 18.700l1.800 1.900 3.200-3.700" fill="none" stroke="#ffffff" stroke-width="1.700" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- class in use: teacher + board + students (Classes in Use) -->
+    <symbol id="icon-class-use" viewBox="0 0 24 24">
+      <path fill-rule="evenodd" d="M10 1.500h11.500A1.500 1.500 0 0 1 23 3v8a1.500 1.500 0 0 1-1.500 1.500H10zm.4 1.900v7.200h11.200V3.400z"/>
+      <circle cx="4.600" cy="4.800" r="2"/>
+      <path d="M0.800 13.200c0-2.900 1.500-4.800 3.800-4.800s3.800 1.900 3.800 4.800z"/>
+      <path d="M7.200 9.600l5.600-3.600.8 1.300-5.600 3.600z"/>
+      <circle cx="4.200" cy="16.800" r="1.700"/>
+      <path d="M1 22.200c0-2.100 1.400-3.500 3.200-3.500s3.200 1.400 3.200 3.500z"/>
+      <circle cx="12" cy="16.800" r="1.700"/>
+      <path d="M8.800 22.200c0-2.100 1.400-3.500 3.200-3.500s3.200 1.400 3.200 3.500z"/>
+      <circle cx="19.800" cy="16.800" r="1.700"/>
+      <path d="M16.600 22.200c0-2.100 1.400-3.500 3.200-3.500s3.200 1.400 3.200 3.500z"/>
+    </symbol>
+    <!-- open book (Departments) -->
+    <symbol id="icon-book" viewBox="0 0 24 24">
+      <path d="M2.500 4.500h7.200a2.300 2.300 0 0 1 2.300 2.300V21a2.300 2.300 0 0 0-2.300-2.300H2.500z"/>
+      <path d="M21.500 4.500h-7.200A2.300 2.300 0 0 0 12 6.800V21a2.300 2.300 0 0 1 2.300-2.300h7.200z"/>
+    </symbol>
+    <!-- calendar with graduation cap (Classes Today) -->
+    <symbol id="icon-calendar-grad" viewBox="0 0 24 24">
+      <rect x="7" y="1.600" width="2.400" height="5.400" rx="1.200"/>
+      <rect x="14.600" y="1.600" width="2.400" height="5.400" rx="1.200"/>
+      <path fill-rule="evenodd" d="M5.700 4.500h12.600a3.200 3.200 0 0 1 3.200 3.200v10.600a3.200 3.200 0 0 1-3.200 3.200H5.700a3.200 3.200 0 0 1-3.200-3.200V7.700a3.200 3.200 0 0 1 3.200-3.200zM12 9.700 5.800 12.600 12 15.500l6.200-2.900zM8.400 14.400v2.300c0 .9 1.600 1.700 3.600 1.700s3.600-.8 3.600-1.700v-2.300L12 16.200z"/>
+    </symbol>
+    <!-- teacher pointing at a board (Teachers) -->
+    <symbol id="icon-teacher" viewBox="0 0 24 24">
+      <path fill-rule="evenodd" d="M11 1.800h10.500A1.500 1.500 0 0 1 23 3.300v7.700a1.500 1.500 0 0 1-1.500 1.500H11zm.4 1.900v6.900h11.200V3.700z"/>
+      <circle cx="6" cy="6" r="2.800"/>
+      <path fill-rule="evenodd" d="M1 22v-6.200C1 12.900 3 11 6 11s5 1.900 5 4.800V22zM6 12.200l-1 1.500 1 3.600 1-3.600z"/>
+      <path d="M9.800 13.600l5.800-3.700.8 1.300-5.800 3.700z"/>
+    </symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24">
+      <rect x="2.500" y="4.500" width="19" height="17" rx="3.200"/>
+      <rect x="7" y="1.800" width="2.400" height="5.400" rx="1.200"/>
+      <rect x="14.600" y="1.800" width="2.400" height="5.400" rx="1.200"/>
+      <g style="fill: var(--tone-card, var(--card-color))">
+        <rect x="5.600" y="10.200" width="3" height="3" rx="0.600"/>
+        <rect x="10.500" y="10.200" width="3" height="3" rx="0.600"/>
+        <rect x="15.400" y="10.200" width="3" height="3" rx="0.600"/>
+        <rect x="5.600" y="15" width="3" height="3" rx="0.600"/>
+        <rect x="10.500" y="15" width="3" height="3" rx="0.600"/>
+        <rect x="15.400" y="15" width="3" height="3" rx="0.600"/>
+      </g>
+    </symbol>
+    <symbol id="icon-logout" viewBox="0 0 24 24">
+      <path d="M4 3h8.500v2.400H6.400v13.200h6.100V21H4z"/>
+      <path d="M14.500 8l4 4-4 4v-3H9.500v-2h5z"/>
+    </symbol>
+    <symbol id="icon-chevron" viewBox="0 0 24 24">
+      <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </svg>
+
+  <div class="sidebar">
+    <div class="logo">
+      <img src="{{ url_for('static', filename='images/logo-icon.png') }}" alt="ISTS logo">
+      <div><div class="logo-name">ISTS</div><div class="logo-sub">Class Management</div></div>
+    </div>
+
+    <nav class="side-nav">
+      <a href="{{ url_for('dashboard') }}" class="{% block nav_dashboard %}{% endblock %}">
+        <svg><use href="#icon-home"/></svg> Dashboard</a>
+      <a href="{{ url_for('departments') }}" class="{% block nav_departments %}{% endblock %}">
+        <svg><use href="#icon-book"/></svg> Departments</a>
+      <a href="{{ url_for('teachers') }}" class="{% block nav_teachers %}{% endblock %}">
+        <svg><use href="#icon-teacher"/></svg> Teachers</a>
+      <a href="{{ url_for('rooms') }}" class="{% block nav_rooms %}{% endblock %}">
+        <svg><use href="#icon-school"/></svg> College Block</a>
+      <a href="{{ url_for('schedule') }}" class="{% block nav_schedule %}{% endblock %}">
+        <svg><use href="#icon-calendar"/></svg> Schedule</a>
+    </nav>
+
+    <a href="{{ url_for('logout') }}" class="side-logout">
+      <svg><use href="#icon-logout"/></svg> Logout</a>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <strong>ISTS Class Management System</strong>
+      <div class="topbar-right">
+        <button class="theme-button" type="button">🌙 Dark</button>
+        <span class="user-name">{{ session["full_name"] }}</span>
+        <a class="btn btn-gray btn-small" href="{{ url_for('logout') }}">Logout</a>
+      </div>
+    </div>
+
+    <div class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+  {% block refresh %}{% endblock %}
+</body>
+</html>

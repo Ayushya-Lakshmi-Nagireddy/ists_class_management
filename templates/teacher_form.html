@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Teacher' if editing else 'Add Teacher' }}{% endblock %}
+{% block nav_teachers %}active{% endblock %}
+
+{% block content %}
+<div class="page-title">
+  <h1>{{ 'Edit Teacher' if editing else 'Add Teacher' }}</h1>
+  <a class="btn btn-gray" href="{{ url_for('teachers') }}">← Back</a>
+</div>
+
+{% if not departments %}
+<div class="card empty">
+  Add a department first, so you can choose what this teacher will teach.<br><br>
+  <a class="btn" href="{{ url_for('add_department') }}">+ Add Department</a>
+</div>
+{% else %}
+<div class="card">
+  <form method="POST" action="{{ url_for('edit_teacher', id=teacher.id) if editing else url_for('add_teacher') }}">
+    <div class="form-grid">
+      <div class="full">
+        <label for="name">Teacher Name</label>
+        <input type="text" id="name" name="name" value="{{ teacher.name }}" placeholder="Example: Mr. Rao" required>
+      </div>
+
+      <div class="full">
+        <label>What will this teacher teach?</label>
+        <p class="hint" style="margin: 0 0 0.625rem;">Choose the department and the subject, then tick every year this teacher takes. Add another row for a different subject or department.</p>
+        <div id="teach-list"></div>
+        <button type="button" class="btn btn-gray btn-small" id="add-row">+ Add another subject</button>
+      </div>
+    </div>
+
+    <div class="form-buttons">
+      <button type="submit" class="btn">{{ 'Save Changes' if editing else 'Save Teacher' }}</button>
+      <a class="btn btn-gray" href="{{ url_for('teachers') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  var DEPARTMENTS = {{ departments|tojson }};
+  var startEntries = {{ teacher.entries|tojson }};
+
+  var list = document.getElementById("teach-list");
+  var rowCounter = 0;
+
+  function findDepartment(id) {
+    for (var i = 0; i < DEPARTMENTS.length; i++) {
+      if (String(DEPARTMENTS[i].id) === String(id)) { return DEPARTMENTS[i]; }
+    }
+    return null;
+  }
+
+  function fillYears(box, deptId, index, ticked) {
+    var department = findDepartment(deptId);
+    box.innerHTML = "";
+    if (!department) {
+      box.innerHTML = '<span class="hint">Select the department first</span>';
+      return;
+    }
+    for (var i = 0; i < department.years.length; i++) {
+      var y = department.years[i];
+      var label = document.createElement("label");
+      label.className = "year-check";
+      var check = document.createElement("input");
+      check.type = "checkbox";
+      check.name = "years_" + index;
+      check.value = y.year_no;
+      if (ticked.indexOf(String(y.year_no)) !== -1) { check.checked = true; }
+      label.appendChild(check);
+      label.appendChild(document.createTextNode(" " + y.label));
+      box.appendChild(label);
+    }
+  }
+
+  function addRow(entry) {
+    entry = entry || {};
+    var index = rowCounter++;
+    var row = document.createElement("div");
+    row.className = "teach-row";
+
+    var marker = document.createElement("input");
+    marker.type = "hidden";
+    marker.name = "row";
+    marker.value = index;
+
+    var dept = document.createElement("select");
+    dept.name = "department_" + index;
+    var firstDept = document.createElement("option");
+    firstDept.value = "";
+    firstDept.textContent = "Select department";
+    dept.appendChild(firstDept);
+    for (var i = 0; i < DEPARTMENTS.length; i++) {
+      var option = document.createElement("option");
+      option.value = DEPARTMENTS[i].id;
+      option.textContent = DEPARTMENTS[i].name;
+      if (String(DEPARTMENTS[i].id) === String(entry.department_id)) { option.selected = true; }
+      dept.appendChild(option);
+    }
+
+    var subject = document.createElement("input");
+    subject.type = "text";
+    subject.name = "subject_" + index;
+    subject.placeholder = "Subject";
+    subject.value = entry.subject || "";
+
+    var years = document.createElement("div");
+    years.className = "year-checks";
+    var ticked = (entry.years || []).map(String);
+    fillYears(years, dept.value, index, ticked);
+    dept.addEventListener("change", function () { fillYears(years, dept.value, index, []); });
+
+    var remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "btn btn-red btn-small";
+    remove.textContent = "Remove";
+    remove.addEventListener("click", function () {
+      list.removeChild(row);
+      if (list.children.length === 0) { addRow({}); }
+    });
+
+    row.appendChild(marker);
+    row.appendChild(dept);
+    row.appendChild(subject);
+    row.appendChild(remove);
+    row.appendChild(years);
+    list.appendChild(row);
+  }
+
+  document.getElementById("add-row").addEventListener("click", function () { addRow({}); });
+
+  var grouped = [];
+  for (var k = 0; k < startEntries.length; k++) {
+    var e = startEntries[k];
+    var found = null;
+    for (var g = 0; g < grouped.length; g++) {
+      if (String(grouped[g].department_id) === String(e.department_id) &&
+          grouped[g].subject.toLowerCase() === e.subject.toLowerCase()) { found = grouped[g]; }
+    }
+    if (found) { found.years.push(e.year_no); }
+    else { grouped.push({department_id: e.department_id, subject: e.subject, years: [e.year_no]}); }
+  }
+  if (grouped.length === 0) { grouped = [{}]; }
+  for (var r = 0; r < grouped.length; r++) { addRow(grouped[r]); }
+</script>
+{% endif %}
+{% endblock %}

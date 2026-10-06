@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}College Block{% endblock %}
+{% block nav_rooms %}active{% endblock %}
+
+{% block content %}
+<div class="page-title">
+  <div>
+    <h1>College Block</h1>
+    <p class="sub">{{ total_rooms }} rooms &middot; {{ free }} free &middot; {{ in_use }} in use &middot; now {{ now }}</p>
+  </div>
+  <a class="btn" href="{{ url_for('add_booking') }}">+ Allot a Room</a>
+</div>
+
+<div class="rooms-legend">
+  <span><i class="dot green"></i> Free</span>
+  <span><i class="dot red"></i> Class running</span>
+</div>
+
+<div class="block-building">
+  {% for f in floors|reverse %}
+  <div class="floor-row">
+    <div class="floor-name">{{ f.title }}</div>
+    <div class="floor-rooms {{ 'single' if f.rooms|length == 1 }}">
+      {% for r in f.rooms %}
+      <div class="room-card {{ 'occupied' if r.current else 'free' }}">
+        <strong>{{ r.name if r.name != 'Seminar Hall' else 'Seminar Hall' }}</strong>
+
+        {% if r.current %}
+          <span class="room-state">Class running</span>
+          <div class="room-who">{{ r.current.teacher_name }}</div>
+          <small>{{ r.current.class_label }}{% if r.current.subject %} &middot; {{ r.current.subject }}{% endif %}</small>
+          <small>{{ r.current.start_time|nice_time }} - {{ r.current.end_time|nice_time }}</small>
+          <form method="POST" action="{{ url_for('end_class', id=r.current.id) }}"
+                onsubmit="return confirm('Is the class over? The room will become free now.');">
+            <button type="submit" class="btn btn-small">End Class</button>
+          </form>
+        {% else %}
+          <span class="room-state">Free</span>
+          {% if r.next %}<small>Next: {{ r.next.start_time|nice_time }} &middot; {{ r.next.class_label }}</small>{% endif %}
+          <a class="btn btn-small" href="{{ url_for('add_booking', room=r.name) }}">Allot Room</a>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+  <div class="block-ground">College Block</div>
+</div>
+{% endblock %}
+
+{% block refresh %}
+<script>
+  setTimeout(function () { window.location.reload(); }, 30000);
+</script>
+{% endblock %}

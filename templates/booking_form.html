@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Booking' if editing else 'Allot a Room' }}{% endblock %}
+{% block nav_schedule %}active{% endblock %}
+
+{% block content %}
+<div class="page-title">
+  <h1>{{ 'Edit Booking' if editing else 'Allot a Room' }}</h1>
+  <a class="btn btn-gray" href="{{ url_for('schedule') }}">← Back</a>
+</div>
+
+{% if not teachers or not departments %}
+<div class="card empty">
+  Before you allot a room, add
+  {% if not departments %}a <a href="{{ url_for('add_department') }}">department</a>{% endif %}
+  {% if not departments and not teachers %} and {% endif %}
+  {% if not teachers %}a <a href="{{ url_for('add_teacher') }}">teacher</a>{% endif %}.
+</div>
+{% else %}
+<div class="card">
+  <form method="POST" action="{{ url_for('edit_booking', id=booking_id) if editing else url_for('add_booking') }}">
+    <div class="form-grid">
+      <div>
+        <label for="room">Room</label>
+        <select id="room" name="room" required>
+          <option value="">Select a room</option>
+          {% for f in floors %}
+            <optgroup label="{{ f.title }}">
+              {% for r in f.rooms %}<option value="{{ r }}" {{ 'selected' if r == form.room }}>{{ r|room_label }}</option>{% endfor %}
+            </optgroup>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="date">Date</label>
+        <input type="date" id="date" name="date" value="{{ form.date }}" required>
+      </div>
+
+      <div class="full">
+        <label for="teacher">Teacher</label>
+        <select id="teacher" name="teacher_id" required>
+          <option value="">Select a teacher</option>
+          {% for t in teachers %}<option value="{{ t.id }}" {{ 'selected' if t.id == form.teacher_id }}>{{ t.name }}</option>{% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label for="department">Department</label>
+        <select id="department" name="department_id" required></select>
+      </div>
+      <div>
+        <label for="year">Year</label>
+        <select id="year" name="year_no" required></select>
+      </div>
+      <div>
+        <label for="section">Class</label>
+        <select id="section" name="section" required></select>
+      </div>
+      <div>
+        <label for="subject">Subject</label>
+        <input type="text" id="subject" name="subject" value="{{ form.subject }}" list="subject-options"
+               placeholder="Subject" autocomplete="off" required>
+        <datalist id="subject-options"></datalist>
+      </div>
+
+      <div class="full">
+        <label>Time Type</label>
+        <div class="mode-switch">
+          <label class="mode-option"><input type="radio" name="mode" value="manual" {{ 'checked' if form.mode != 'period' }}> Manual time</label>
+          <label class="mode-option"><input type="radio" name="mode" value="period" {{ 'checked' if form.mode == 'period' }}> Period</label>
+        </div>
+      </div>
+
+      <div id="manual-box" class="full">
+        <div class="form-grid">
+          <div>
+            <label for="start_time">Start Time</label>
+            <input type="time" id="start_time" name="start_time" value="{{ form.start_time }}">
+          </div>
+          <div>
+            <label for="end_time">End Time</label>
+            <input type="time" id="end_time" name="end_time" value="{{ form.end_time }}">
+          </div>
+        </div>
+      </div>
+
+      <div id="period-box" class="full">
+        <label for="period">Period</label>
+        <select id="period" name="period"></select>
+        <p class="hint" id="period-hint"></p>
+      </div>
+    </div>
+
+    <div class="form-buttons">
+      <button type="submit" class="btn">{{ 'Save Changes' if editing else 'Allot Room' }}</button>
+      <a class="btn btn-gray" href="{{ url_for('schedule') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  var DEPARTMENTS = {{ departments|tojson }};
+  var TEACHERS = {{ teachers|tojson }};
+  var PERIODS = {{ periods|tojson }};
+  var start = {
+    department: {{ form.department_id|tojson }},
+    year: {{ form.year_no|tojson }},
+    section: {{ form.section|tojson }},
+    period: {{ form.period|tojson }}
+  };
+
+  var teacherSelect = document.getElementById("teacher");
+  var deptSelect = document.getElementById("department");
+  var yearSelect = document.getElementById("year");
+  var sectionSelect = document.getElementById("section");
+  var subjectInput = document.getElementById("subject");
+  var subjectList = document.getElementById("subject-options");
+  var periodSelect = document.getElementById("period");
+  var periodHint = document.getElementById("period-hint");
+  var manualBox = document.getElementById("manual-box");
+  var periodBox = document.getElementById("period-box");
+  var startInput = document.getElementById("start_time");
+  var endInput = document.getElementById("end_time");
+  var modeRadios = document.querySelectorAll("input[name='mode']");
+
+  function same(a, b) { return String(a) === String(b); }
+
+  function findDepartment(id) {
+    for (var i = 0; i < DEPARTMENTS.length; i++) { if (same(DEPARTMENTS[i].id, id)) { return DEPARTMENTS[i]; } }
+    return null;
+  }
+  function findYear(department, yearNo) {
+    if (!department) { return null; }
+    for (var i = 0; i < department.years.length; i++) { if (same(department.years[i].year_no, yearNo)) { return department.years[i]; } }
+    return null;
+  }
+  function currentTeacher() {
+    for (var i = 0; i < TEACHERS.length; i++) { if (same(TEACHERS[i].id, teacherSelect.value)) { return TEACHERS[i]; } }
+    return null;
+  }
+
+  function fill(select, placeholder, items, chosen) {
+    select.innerHTML = "";
+    var first = document.createElement("option");
+    first.value = "";
+    first.textContent = placeholder;
+    select.appendChild(first);
+    for (var i = 0; i < items.length; i++) {
+      var option = document.createElement("option");
+      option.value = items[i].value;
+      option.textContent = items[i].text;
+      if (same(items[i].value, chosen) && chosen !== "" && chosen !== null) { option.selected = true; }
+      select.appendChild(option);
+    }
+  }
+
+  function fillDepartments(chosen) {
+    var items = [];
+    for (var i = 0; i < DEPARTMENTS.length; i++) { items.push({value: DEPARTMENTS[i].id, text: DEPARTMENTS[i].name}); }
+    fill(deptSelect, "Select department", items, chosen);
+  }
+
+  function fillYears(chosen) {
+    var department = findDepartment(deptSelect.value);
+    var items = [];
+    if (department) {
+      for (var i = 0; i < department.years.length; i++) { items.push({value: department.years[i].year_no, text: department.years[i].label}); }
+    }
+    fill(yearSelect, department ? "Select year" : "Select department first", items, chosen);
+  }
+
+  function fillSections(chosen) {
+    var year = findYear(findDepartment(deptSelect.value), yearSelect.value);
+    var items = [];
+    if (year) {
+      for (var i = 0; i < year.classes.length; i++) { items.push({value: year.classes[i], text: year.classes[i]}); }
+    }
+    fill(sectionSelect, year ? "Select class" : "Select year first", items, chosen);
+  }
+
+  // subject suggestions: what this teacher teaches in the chosen department and year
+  function fillSubjects(autoFill) {
+    var teacher = currentTeacher();
+    subjectList.innerHTML = "";
+    if (!teacher) { return; }
+    var matches = [];
+    var others = [];
+    for (var i = 0; i < teacher.entries.length; i++) {
+      var e = teacher.entries[i];
+      var fits = same(e.department_id, deptSelect.value) && (yearSelect.value === "" || same(e.year_no, yearSelect.value));
+      (fits ? matches : others).push(e.subject);
+    }
+    var all = matches.concat(others);
+    for (var j = 0; j < all.length; j++) {
+      var option = document.createElement("option");
+      option.value = all[j];
+      subjectList.appendChild(option);
+    }
+    if (autoFill && subjectInput.value === "" && matches.length === 1) { subjectInput.value = matches[0]; }
+  }
+
+  // when a teacher is chosen, pick his / her department and year if there is only one choice
+  function teacherChanged() {
+    var teacher = currentTeacher();
+    if (teacher && teacher.entries.length > 0) {
+      var depts = [];
+      for (var i = 0; i < teacher.entries.length; i++) {
+        if (depts.indexOf(String(teacher.entries[i].department_id)) === -1) { depts.push(String(teacher.entries[i].department_id)); }
+      }
+      if (deptSelect.value === "" && depts.length === 1) {
+        deptSelect.value = depts[0];
+        fillYears("");
+        var years = [];
+        for (var k = 0; k < teacher.entries.length; k++) {
+          if (years.indexOf(String(teacher.entries[k].year_no)) === -1) { years.push(String(teacher.entries[k].year_no)); }
+        }
+        if (years.length === 1) { yearSelect.value = years[0]; }
+        fillSections("");
+        fillPeriods();
+      }
+    }
+    fillSubjects(true);
+  }
+
+  function niceTime(text) {
+    var parts = text.split(":");
+    var h = parseInt(parts[0], 10);
+    var suffix = h >= 12 ? "PM" : "AM";
+    h = h % 12;
+    if (h === 0) { h = 12; }
+    return h + ":" + parts[1] + " " + suffix;
+  }
+
+  function currentMode() {
+    for (var i = 0; i < modeRadios.length; i++) { if (modeRadios[i].checked) { return modeRadios[i].value; } }
+    return "manual";
+  }
+
+  // the period list follows the chosen year (2nd year and 3rd year have different timings)
+  function fillPeriods() {
+    var yearNo = yearSelect.value;
+    var slots = yearNo ? (PERIODS[yearNo] || PERIODS["default"]) : [];
+    periodSelect.innerHTML = "";
+
+    var first = document.createElement("option");
+    first.value = "";
+    first.textContent = yearNo ? "Select a period" : "Select the year first";
+    periodSelect.appendChild(first);
+
+    for (var i = 0; i < slots.length; i++) {
+      var option = document.createElement("option");
+      option.value = slots[i].key;
+      option.textContent = slots[i].name + " (" + niceTime(slots[i].start) + " - " + niceTime(slots[i].end) + ")";
+      if (slots[i].type === "break") { option.disabled = true; }
+      else if (slots[i].key === start.period) { option.selected = true; }
+      periodSelect.appendChild(option);
+    }
+    periodHint.textContent = yearNo ? "Timings for " + yearSelect.options[yearSelect.selectedIndex].text + " classes." : "";
+  }
+
+  function updateMode() {
+    var period = currentMode() === "period";
+    periodBox.style.display = period ? "" : "none";
+    manualBox.style.display = period ? "none" : "";
+    periodSelect.disabled = !period;
+    periodSelect.required = period;
+    startInput.disabled = period;
+    endInput.disabled = period;
+    startInput.required = !period;
+    endInput.required = !period;
+  }
+
+  teacherSelect.addEventListener("change", teacherChanged);
+  deptSelect.addEventListener("change", function () { fillYears(""); fillSections(""); fillPeriods(); fillSubjects(true); });
+  yearSelect.addEventListener("change", function () { start.period = ""; fillSections(""); fillPeriods(); fillSubjects(true); });
+  periodSelect.addEventListener("change", function () { start.period = periodSelect.value; });
+  for (var m = 0; m < modeRadios.length; m++) { modeRadios[m].addEventListener("change", updateMode); }
+
+  fillDepartments(start.department);
+  fillYears(start.year);
+  fillSections(start.section);
+  fillPeriods();
+  fillSubjects(false);
+  updateMode();
+</script>
+{% endif %}
+{% endblock %}

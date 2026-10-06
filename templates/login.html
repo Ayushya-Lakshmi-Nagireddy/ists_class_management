@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - ISTS</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo-icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body>
+  <button class="theme-button corner-button" type="button">🌙 Dark</button>
+
+  <div class="login-page">
+    <div class="card login-box">
+      <img class="login-logo" src="{{ url_for('static', filename='images/logo-icon.png') }}" alt="ISTS logo">
+      <h1>ISTS</h1>
+      <p class="login-text">Class Management System - Login</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('login') }}">
+        <div class="field">
+          <label for="login_name">Username or Email</label>
+          <input type="text" id="login_name" name="login_name" required>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="password-box">
+            <input type="password" id="password" name="password" required>
+            <button type="button" class="show-button">Show</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-full">Login</button>
+      </form>
+
+      <p class="bottom-link">Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
+    </div>
+  </div>
+</body>
+</html>

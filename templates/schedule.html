@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Schedule{% endblock %}
+{% block nav_schedule %}active{% endblock %}
+
+{% block content %}
+<div class="page-title">
+  <h1>Class Schedule</h1>
+  <a class="btn" href="{{ url_for('add_booking') }}">+ Allot a Room</a>
+</div>
+
+<form class="search-form" method="GET" action="{{ url_for('schedule') }}">
+  <input type="text" name="search" value="{{ search }}" placeholder="Search by teacher, subject or department">
+  <select name="room">
+    <option value="">All rooms</option>
+    {% for f in floors %}
+      <optgroup label="{{ f.title }}">
+        {% for r in f.rooms %}<option value="{{ r }}" {{ 'selected' if r == room }}>{{ r|room_label }}</option>{% endfor %}
+      </optgroup>
+    {% endfor %}
+  </select>
+  <input type="date" name="date" value="{{ date }}">
+  <button type="submit" class="btn">Filter</button>
+  {% if search or date or room %}<a class="btn btn-gray" href="{{ url_for('schedule') }}">Clear</a>{% endif %}
+</form>
+
+<div class="card table-box">
+  {% if bookings %}
+  <table>
+    <tr>
+      <th>Teacher</th><th>Subject</th><th>Class</th><th>Room</th><th>Date</th><th>Period</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th>
+    </tr>
+    {% for b in bookings %}
+    <tr>
+      <td>{{ b.teacher_name }}</td>
+      <td>{{ b.subject or '-' }}</td>
+      <td>{{ b.class_label or '-' }}</td>
+      <td>{{ b.room_text }}</td>
+      <td>{{ b.date|nice_date }}</td>
+      <td>{{ b.period or 'Manual' }}</td>
+      <td>{{ b.start_time|nice_time }}</td>
+      <td>{{ b.end_time|nice_time }}</td>
+      <td>
+        <span class="badge {% if b.state == 'Ongoing' %}good{% elif b.state == 'Upcoming' %}wait{% elif b.state == 'Ended' %}cancelled{% else %}out{% endif %}">{{ b.state }}</span>
+      </td>
+      <td>
+        <div class="actions">
+          {% if b.state in ('Ongoing', 'Upcoming') %}
+          <a class="btn btn-gray btn-small" href="{{ url_for('edit_booking', id=b.id) }}">Edit</a>
+          {% endif %}
+          {% if b.state == 'Ongoing' %}
+          <form method="POST" action="{{ url_for('end_class', id=b.id) }}"
+                onsubmit="return confirm('Is the class over? The room will become free now.');">
+            <button type="submit" class="btn btn-small">End Class</button>
+          </form>
+          {% endif %}
+          <form method="POST" action="{{ url_for('delete_booking', id=b.id) }}"
+                onsubmit="return confirm('Delete this booking?');">
+            <button type="submit" class="btn btn-red">Delete</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty">
+    {% if search or date or room %}
+      No bookings found. <a href="{{ url_for('schedule') }}">Show all</a>
+    {% else %}
+      No classes scheduled yet. Click "+ Allot a Room" to add one.
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block refresh %}
+<script>
+  setTimeout(function () { window.location.reload(); }, 30000);
+</script>
+{% endblock %}
