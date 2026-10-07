@@ -10,6 +10,18 @@
 
 <form class="search-form" method="GET" action="{{ url_for('schedule') }}">
   <input type="text" name="search" value="{{ search }}" placeholder="Search by teacher, subject or department">
+  <select name="department">
+    <option value="">All departments</option>
+    {% for d in department_names %}
+      <optgroup label="{{ d.name }}">
+        <option value="{{ d.name }}" {{ 'selected' if d.name == department }}>All {{ d.name }} classes</option>
+        {% for y in d.years %}{% for c in y.classes %}
+        {% set v = d.name ~ '|' ~ y.year_no ~ '|' ~ c %}
+        <option value="{{ v }}" {{ 'selected' if v == department }}>{{ d.name }} {{ y.label }} {{ c }}</option>
+        {% endfor %}{% endfor %}
+      </optgroup>
+    {% endfor %}
+  </select>
   <select name="room">
     <option value="">All rooms</option>
     {% for f in floors %}
@@ -20,7 +32,7 @@
   </select>
   <input type="date" name="date" value="{{ date }}">
   <button type="submit" class="btn">Filter</button>
-  {% if search or date or room %}<a class="btn btn-gray" href="{{ url_for('schedule') }}">Clear</a>{% endif %}
+  {% if search or date or room or department %}<a class="btn btn-gray" href="{{ url_for('schedule') }}">Clear</a>{% endif %}
 </form>
 
 <div class="card table-box">
@@ -64,7 +76,7 @@
   </table>
   {% else %}
   <div class="empty">
-    {% if search or date or room %}
+    {% if search or date or room or department %}
       No bookings found. <a href="{{ url_for('schedule') }}">Show all</a>
     {% else %}
       No classes scheduled yet. Click "+ Allot a Room" to add one.

@@ -17,7 +17,7 @@
 </div>
 
 <div class="block-building">
-  {% for f in floors|reverse %}
+  {% for f in floors %}
   <div class="floor-row">
     <div class="floor-name">{{ f.title }}</div>
     <div class="floor-rooms {{ 'single' if f.rooms|length == 1 }}">

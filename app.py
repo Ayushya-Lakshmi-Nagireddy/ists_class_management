@@ -727,6 +727,7 @@ def schedule():
     search = request.args.get("search", "").strip()
     date = request.args.get("date", "").strip()
     room = request.args.get("room", "").strip()
+    department = request.args.get("department", "").strip()
 
     sql = "SELECT * FROM bookings WHERE 1 = 1"
     values = []
@@ -739,12 +740,22 @@ def schedule():
     if room != "":
         sql = sql + " AND room = ?"
         values.append(room)
+    if department != "":
+        # "CSE" = whole department, "CSE|2|D1" = one class
+        parts = department.rsplit("|", 2)
+        if len(parts) == 3 and to_int(parts[1]) is not None:
+            sql = sql + " AND department = ? AND year_no = ? AND section = ?"
+            values += [parts[0], to_int(parts[1]), parts[2]]
+        else:
+            sql = sql + " AND department = ?"
+            values.append(department)
 
     db = get_db()
     rows = db.execute(sql, values).fetchall()
     db.close()
+    department_names = get_departments()
 
-    return render_template("schedule.html", bookings=sort_by_time(with_state(rows)), search=search,
+    return render_template("schedule.html", department=department, department_names=department_names, bookings=sort_by_time(with_state(rows)), search=search,
                            date=date, room=room, floors=FLOORS)
 
 
